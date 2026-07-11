@@ -1,61 +1,65 @@
 # ACOS — Autonomous Company Operating System
 
 ## Original Problem Statement
-Integrate two provided React components (`gradient-menu`, `motion-footer`) into a full-stack build of ACOS: an AI-agent-driven business ops platform (HR, Finance, Inventory, Sales, Compliance) with human-in-the-loop approvals, JWT auth with 4 roles, and audit logging.
+Import all content from https://github.com/bankarmanan8-boop/ACOS, build/extend features on top of it, wire in Resend for real emails, promote `bankarmanan8@gmail.com` to admin, and restructure the codebase so it can deploy to Vercel with a valid `vercel.json`.
 
 ## Architecture
-- **Backend:** FastAPI + MongoDB (motor) — `/app/backend/server.py`
+- **Backend:** FastAPI + MongoDB (motor) — `backend/server.py`
 - **LLM:** Claude Sonnet 4.6 via `emergentintegrations` (Emergent Universal Key)
-- **Auth:** JWT + bcrypt, 4 roles: admin / manager / employee / auditor
-- **Frontend:** React 19 (JSX), TailwindCSS, react-router-dom v7
-- **Motion:** GSAP + ScrollTrigger for cinematic footer; react-fast-marquee for status ticker
-- **Charts:** recharts (Analytics tab)
+- **Auth:** JWT + bcrypt · 4 roles (admin / manager / employee / auditor) · Emergent Google SSO
+- **Frontend:** React 19 (JSX) · TailwindCSS · react-router-dom v7 · axios (relative `/api` fallback)
+- **Motion:** GSAP + react-fast-marquee (cinematic footer)
+- **Charts:** recharts (Analytics)
+- **Email:** Resend (live — key configured)
+- **Deployment:** Vercel serverless (`api/index.py` wraps FastAPI ASGI app) + static CRA build
 
 ## User Personas
-- **Admin (Ava Reyes)** — full access, approves everything
-- **Manager (Marcus Nolan)** — approves up to threshold, sees team data
-- **Employee (Elena Park)** — self data, KPI viewer
-- **Auditor (Kenji Ito)** — read-only across all modules + full audit log
+- **Manan Bankar (bootstrap admin, real account)** — full access
+- **Ava Reyes / Marcus Nolan / Elena Park / Kenji Ito** — demo admin/manager/employee/auditor
 
-## What's Been Implemented (Feb 2026)
-### Iteration 1 (MVP)
-- JWT login with 4 seeded users + role-based approval endpoint
-- Auto-seed on backend startup (employees, invoices, inventory, leads, contracts, approvals, agents)
-- Multi-agent runner: 6 agents (orchestrator/hr/finance/inventory/sales/compliance) — each calls Claude Sonnet 4.6 with its own system prompt, returns reasoning + confidence + escalate flag
-- Escalated agent decisions auto-create approval queue entries
-- 11 pages wired: Dashboard, Agents, HR, Finance, Inventory, Sales, Compliance, Analytics, Approvals, Audit Logs, Settings
-- Two required components integrated:
-  - `gradient-menu.jsx` — floating nav in header, adapted for React Router with hover-expand pills
-  - `motion-footer.jsx` — cinematic aurora footer with ACOS giant text, GSAP scroll animations, marquee, magnetic CTAs
-- Immutable audit log for every login / agent run / approval decision
+## What's Been Implemented (Jul 2026 — current session)
+### Existing (imported from GitHub repo)
+- JWT + email OTP + forgot-reset password + Emergent Google SSO
+- 6-agent LLM runner (orchestrator/hr/finance/inventory/sales/compliance)
+- Human-in-the-loop approvals, immutable audit log
+- 11 pages: Dashboard, Agents, HR, Finance, Inventory, Sales, Compliance, Analytics, Approvals, Audit Logs, Settings
+- File uploads (Emergent object storage), CSV import
+- RBAC filtering on read paths, employee scoping
+- Configurable per-agent scheduled runs (in-process asyncio poller)
+- Prompt-injection sanitizer, emails log viewer
 
-### Iteration 2 (P1 + P2)
-- **RBAC on read paths**: employees blocked from Finance/Sales/Compliance/Approvals (403); HR data filtered to self; graceful 403 UX
-- **Forgot-password + reset flow**: `/forgot` → `/reset?token=…`, tokens expire in 30 minutes, emails queued via Resend or console fallback
-- **Email OTP-based 2FA**: admin approval decisions require step-up token; OTP dialog auto-fills demo hint when RESEND_API_KEY empty
-- **Configurable per-agent scheduled runs**: `/api/schedules` endpoints, in-process asyncio poller runs every 30s and dispatches due agents; UI in Settings with enable/cadence/goal per agent
-- **File uploads (Emergent object storage)**: `/api/files/upload` with attach_to='invoice:<id>' or 'contract:<id>'; per-row uploader chip on Finance and Compliance pages
-- **Notification engine**: `send_email()` helper — real Resend if key set, console fallback + DB record otherwise; sends on forgot/OTP/approval decisions
-- **Prompt-injection sanitizer**: `sanitize_input()` scrubs common jailbreak patterns and wraps user goals in explicit `<user_supplied_goal>` tags before sending to Claude
-- Emails log viewer in Settings (admin/auditor only)
+### Added this session (Jul 11 2026)
+- **Resend live**: real emails now sent (verified via forgot-password flow → `provider=resend, status=sent`)
+- **Bootstrap admin**: idempotent `bootstrap_admin()` promotes/creates `bankarmanan8@gmail.com` as admin on every startup and refreshes password to `BOOTSTRAP_ADMIN_PASSWORD`; keeps Google auth working too.
+- **Serverless-safe backend**: scheduler loop is auto-disabled when `VERCEL=1` env var is set (Vercel runtime).
+- **Vercel deploy config**:
+  - `api/index.py` — Python serverless entrypoint that imports the FastAPI app as ASGI
+  - `api/requirements.txt` — trimmed deps for the serverless function
+  - `vercel.json` — proper v2 config with `functions` + `rewrites` (NOT the invalid `services` schema)
+  - `.vercelignore` — trims bundle size
+  - `DEPLOYMENT.md` — full walkthrough (Atlas setup, env vars, cron replacement, cold-start caveats)
+- **Frontend same-origin API**: `frontend/src/lib/api.js` now falls back to relative `/api` when `REACT_APP_BACKEND_URL` is empty — required for Vercel monorepo deploys.
 
 ## Prioritized Backlog
-### P1
-- Reset password / forgot password flow
-- Employee-scoped filtering (currently all users see all data — RBAC on read paths)
-- Real background workers for scheduled agent runs (currently on-demand)
-- Attachment upload for invoices/contracts (object storage integration)
+### P1 (next options offered to user)
+- Vector RAG over uploaded contracts (FAISS)
+- Real ML-driven anomaly detection dashboard
+- Real-time notifications via websockets
+- Slack integration for approvals / escalations
+- Global AI chat command-bar
 
 ### P2
-- 2FA / OTP for admin & finance actions (mentioned in original spec)
-- Prompt-injection sanitization pipeline for external document ingestion
-- SSO (Google Workspace / Microsoft 365)
-- Notification engine (email/SMS/WhatsApp) for approvals
+- Vercel Cron endpoint to replace in-process scheduler
+- Direct-to-S3 upload for large PDFs (bypass Vercel 4.5 MB limit)
+- SSO for Microsoft 365
+- SMS/WhatsApp via Twilio for approval notifications
 
 ### P3
-- Vector RAG over uploaded contracts (FAISS)
 - Genetic-algorithm shift scheduler (DEAP) for HR agent
-- Anomaly detection ML models replacing static list
+- Cost telemetry per agent run
 
 ## Test Credentials
 See `/app/memory/test_credentials.md`.
+
+## Deployment
+See `/app/DEPLOYMENT.md`.

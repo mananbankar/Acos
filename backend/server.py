@@ -1512,17 +1512,49 @@ async def seed():
     await audit("system", "seed", "system", "Initial demo data seeded")
 
 
+async def bootstrap_admin():
+    """Ensure BOOTSTRAP_ADMIN_EMAIL exists as an admin. Idempotent: promotes if already present, creates otherwise.
+    Also sets/refreshes the password to BOOTSTRAP_ADMIN_PASSWORD so the user can sign in with either
+    the password OR their Google account.
+    """
+    email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "").strip().lower()
+    if not email:
+        return
+    name = os.environ.get("BOOTSTRAP_ADMIN_NAME", email.split("@")[0])
+    pwd = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", "ChangeMe123!")
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        patch = {"role": "admin", "email_verified": True, "password": hash_password(pwd)}
+        await db.users.update_one({"id": existing["id"]}, {"$set": patch})
+        await audit("system", "bootstrap_admin", "auth", f"Bootstrap: ensured {email} is admin (password refreshed)")
+        logging.info(f"Bootstrap: ensured {email} is admin — password refreshed to BOOTSTRAP_ADMIN_PASSWORD")
+        return
+    user_id = new_id()
+    await db.users.insert_one({
+        "id": user_id, "email": email, "name": name,
+        "password": hash_password(pwd), "role": "admin",
+        "avatar": None, "email_verified": True,
+        "auth_provider": "password", "created_at": utcnow_iso(),
+    })
+    await audit("system", "user_create", "auth", f"Bootstrap: created admin {email}")
+    logging.info(f"Bootstrap: created admin {email} (temporary password set — change on first login)")
+
+
 @app.on_event("startup")
 async def on_start():
     await seed()
+    await bootstrap_admin()
     # Object storage init (best-effort)
     try:
         init_storage()
         logging.info("Object storage initialized")
     except Exception:
         logging.exception("Object storage init failed (uploads will 503)")
-    # Kick off the scheduler loop as a background task
-    asyncio.create_task(_scheduler_loop())
+    # Skip long-running scheduler loop when running on serverless (Vercel)
+    if not os.environ.get("VERCEL"):
+        asyncio.create_task(_scheduler_loop())
+    else:
+        logging.info("Serverless environment detected — scheduler loop disabled (use Vercel Cron instead).")
 
 
 # ----------------------------------------------------------------
