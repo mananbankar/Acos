@@ -1,0 +1,16 @@
+{
+  "buildCommand": "yarn install --frozen-lockfile && yarn build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11",
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/api",      "destination": "/api/index.py" }
+  ]
+}

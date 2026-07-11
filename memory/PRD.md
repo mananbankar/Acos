@@ -32,13 +32,15 @@ Import all content from https://github.com/bankarmanan8-boop/ACOS, build/extend 
 - **Resend live**: real emails now sent (verified via forgot-password flow → `provider=resend, status=sent`)
 - **Bootstrap admin**: idempotent `bootstrap_admin()` promotes/creates `bankarmanan8@gmail.com` as admin on every startup and refreshes password to `BOOTSTRAP_ADMIN_PASSWORD`; keeps Google auth working too.
 - **Serverless-safe backend**: scheduler loop is auto-disabled when `VERCEL=1` env var is set (Vercel runtime).
-- **Vercel deploy config**:
-  - `api/index.py` — Python serverless entrypoint that imports the FastAPI app as ASGI
-  - `api/requirements.txt` — trimmed deps for the serverless function
-  - `vercel.json` — proper v2 config with `functions` + `rewrites` (NOT the invalid `services` schema)
-  - `.vercelignore` — trims bundle size
-  - `DEPLOYMENT.md` — full walkthrough (Atlas setup, env vars, cron replacement, cold-start caveats)
-- **Frontend same-origin API**: `frontend/src/lib/api.js` now falls back to relative `/api` when `REACT_APP_BACKEND_URL` is empty — required for Vercel monorepo deploys.
+- **Single-folder Vercel deploy** (free-tier compatible):
+  - `frontend/` is the single Vercel Root Directory
+  - `frontend/api/index.py` — Python serverless entrypoint (Vercel auto-detects)
+  - `frontend/server/app.py` — canonical FastAPI code (moved from `backend/server.py`)
+  - `frontend/api/requirements.txt` — Python deps for the function
+  - `frontend/vercel.json` — rewrites `/api/*` → serverless function
+  - `backend/server.py` — 3-line shim so local supervisor preview still runs
+  - `DEPLOYMENT.md` — updated walkthrough for the single-folder pattern
+- **Frontend same-origin API**: `frontend/src/lib/api.js` now falls back to relative `/api` when `REACT_APP_BACKEND_URL` is empty — required for the single-folder Vercel deploy.
 
 ## Prioritized Backlog
 ### P1 (next options offered to user)
