@@ -1,0 +1,120 @@
+{
+  "project_name": "Autonomous Company Operating System (ACOS)",
+  "theme_strategy": "dark",
+  "typography": {
+    "headings": {
+      "family": "Cabinet Grotesk, sans-serif",
+      "weights": ["300", "800", "900"],
+      "usage": "Use tight letter spacing (tracking-tighter) for massive text. Never use Inter for headings.",
+      "scales": {
+        "h1": "text-4xl sm:text-5xl lg:text-6xl",
+        "h2": "text-2xl sm:text-3xl lg:text-4xl",
+        "h3": "text-xl sm:text-2xl",
+        "h4": "text-lg sm:text-xl"
+      }
+    },
+    "body": {
+      "family": "IBM Plex Sans, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Data-heavy tables, forms, logs, and general reading content.",
+      "scales": {
+        "base": "text-base",
+        "sm": "text-sm",
+        "xs": "text-xs tracking-[0.2em] uppercase"
+      }
+    }
+  },
+  "colors": {
+    "archetype": "Electric & Neon / Command Center Future",
+    "base": {
+      "background": "#09090b",
+      "surface": "#18181b",
+      "border": "rgba(255, 255, 255, 0.1)"
+    },
+    "accents": {
+      "primary": "#06b6d4", 
+      "secondary": "#ec4899", 
+      "warning": "#eab308",
+      "success": "#22c55e",
+      "error": "#ef4444"
+    },
+    "text": {
+      "primary": "#ffffff",
+      "secondary": "#a1a1aa",
+      "muted": "#71717a"
+    },
+    "forbidden_colors": ["#1B93A4", "#7351B7"],
+    "rules": "Color is functional. Keep the dashboard 90% monochrome (zinc/black), reserving the Cyan/Pink for AI agent status glows, confidence rings, and the footer aurora."
+  },
+  "layouts": {
+    "spacing_scale": "Generous Spacing Philosophy. Use p-6 or p-8 inside bordered containers. Ensure grid items don't collide.",
+    "dashboard_grid": "High Density Grid (grid-cols-1 md:grid-cols-4 lg:grid-cols-12). gap-6 between modules.",
+    "agent_bento": "Bento Grid specifically for the Agents tab. Use col-span-4 for the Agent Status Card, col-span-8 for the Live Task Stream."
+  },
+  "visual_enhancers": {
+    "surfaces": {
+      "dashboard_cards": "Grid Borders ('The Technical Look'). Flat background (bg-zinc-900), 1px border (border-white/10), no soft shadows. Raw, objective data presentation.",
+      "glassmorphism": "Used EXCLUSIVELY for floating overlays (like the gradient-menu). bg-zinc-950/60 with backdrop-blur-xl and a delicate 1px border-white/10."
+    },
+    "components": {
+      "gradient_menu": "A horizontal pill menu floating at the top (fixed, z-50). Default state: solid text, dark glass bg. Hover state: expands width slightly via motion, text transitions to bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-pink-500, with a subtle outer glow.",
+      "motion_footer": "Cinematic scroll-reveal footer. Must include: 1) Aurora glow (absolute blur-[120px] cyan/pink blobs behind content), 2) Giant background text 'ACOS' (text-[15vw] font-black text-white/5 tracking-tighter), 3) GSAP/Framer marquee of system statuses, 4) Magnetic-style CTA buttons.",
+      "agent_status_board": "Multi-agent dashboard showing confidence indicators (circular progress rings), current handoff state, and live execution timeline."
+    }
+  },
+  "motion": {
+    "micro_interactions": "All buttons need hover:scale-[1.02] active:scale-95 transitions.",
+    "page_transitions": "Staggered fade-in (framer-motion) for dashboard grid cards.",
+    "marquee": "Use react-fast-marquee or framer-motion for the agent task stream and footer. Slow, continuous flow.",
+    "accessibility": "Respect prefers-reduced-motion. Do not rely exclusively on color/motion to convey agent failure/success."
+  },
+  "media": {
+    "rules": "Do NOT use placeholder image URLs. Images used must be from the verified list below.",
+    "image_urls": {
+      "avatars": [
+        {"url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBidXNpbmVzcyUyMHBvcnRyYWl0JTIwaGVhZHNob3R8ZW58MHx8fHwxNzgzNzk3OTU0fDA&ixlib=rb-4.1.0&q=85", "category": "employee_avatar_female"},
+        {"url": "https://images.unsplash.com/photo-1652471943570-f3590a4e52ed?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBidXNpbmVzcyUyMHBvcnRyYWl0JTIwaGVhZHNob3R8ZW58MHx8fHwxNzgzNzk3OTU0fDA&ixlib=rb-4.1.0&q=85", "category": "manager_avatar_male"},
+        {"url": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBidXNpbmVzcyUyMHBvcnRyYWl0JTIwaGVhZHNob3R8ZW58MHx8fHwxNzgzNzk3OTU0fDA&ixlib=rb-4.1.0&q=85", "category": "admin_avatar"},
+        {"url": "https://images.unsplash.com/photo-1685760259914-ee8d2c92d2e0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2ODl8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBidXNpbmVzcyUyMHBvcnRyYWl0JTIwaGVhZHNob3R8ZW58MHx8fHwxNzgzNzk3OTU0fDA&ixlib=rb-4.1.0&q=85", "category": "auditor_avatar"}
+      ],
+      "agent_backgrounds": [
+        {"url": "https://images.unsplash.com/photo-1644088379091-d574269d422f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGdsb3dpbmclMjBuZXVyYWwlMjBuZXR3b3JrJTIwdGVjaHxlbnwwfHx8fDE3ODM3OTc5NTV8MA&ixlib=rb-4.1.0&q=85", "category": "agent_data_viz_1"},
+        {"url": "https://images.unsplash.com/photo-1727434032773-af3cd98375ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGdsb3dpbmclMjBuZXVyYWwlMjBuZXR3b3JrJTIwdGVjaHxlbnwwfHx8fDE3ODM3OTc5NTV8MA&ixlib=rb-4.1.0&q=85", "category": "agent_data_viz_2"},
+        {"url": "https://images.unsplash.com/photo-1644325349124-d1756b79dd42?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGdsb3dpbmclMjBuZXVyYWwlMjBuZXR3b3JrJTIwdGVjaHxlbnwwfHx8fDE3ODM3OTc5NTV8MA&ixlib=rb-4.1.0&q=85", "category": "agent_data_viz_3"}
+      ],
+      "company_logo": [
+        {"url": "https://images.unsplash.com/photo-1706879349328-4a05bb3e16ea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHwyfHxjb21wYW55JTIwbG9nbyUyMHN5bWJvbCUyMHdoaXRlJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3ODM3OTc5NzN8MA&ixlib=rb-4.1.0&q=85", "category": "app_logo"}
+      ]
+    }
+  },
+  "libraries": {
+    "icons": "lucide-react (already installed)",
+    "motion": "framer-motion",
+    "charts": "recharts (for analytics and agent confidence rings)",
+    "toasts": "sonner",
+    "marquee": "react-fast-marquee"
+  },
+  "testing": {
+    "attributes": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case, role-based format (e.g. data-testid='agent-status-toggle')."
+  },
+  "instructions_to_main_agent": [
+    "Write code in .js / .jsx files (not .tsx) as per the workspace environment.",
+    "Ensure dark mode is the default and strictly implemented. Do not use pure #000000; stick to the zinc scale.",
+    "Do not use generic centered layouts or standard Bootstrap-like grids.",
+    "The gradient-menu must be built as a horizontal floating pill, utilizing backdrop-blur-xl and transparent backgrounds correctly so content scrolling underneath remains visible but the menu is highly legible.",
+    "The motion-footer must act as a grand, cinematic conclusion to the app layout. Use an absolute background with high blur for the aurora glow, giant tracking-tighter text for 'ACOS', and a continuous marquee.",
+    "Every module (HR, Finance, Inventory) should feel like a 'Command Center' - dense grids, border-collapse styles (border-white/10), and crisp, accessible data tables.",
+    "Use pure HTML/Tailwind for structural layout and Shadcn heavily customized components for interactive forms, selects, and dialogs.",
+    "Avoid the 'God Agent' anti-pattern in UI design: visually break down AI actions into multiple specialized agents in the Agents tab, showing clear task handoffs."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Avoid generic, 'on distribution' outputs. Do not create 'AI slop' aesthetics.",
+    "Create depth through layered design elements with proper z-index hierarchy and glassmorphism.",
+    "Never apply universal transitions (e.g., transition: all). Target specific properties to avoid breaking transforms.",
+    "Never center-align the app container (.App { text-align: center; }).",
+    "Do not use AI assistant emoji characters (🤖🧠💭) for icons. Use lucide-react.",
+    "Every interaction needs micro-animations (hover, active, focus).",
+    "Use 2-3x more spacing than typical defaults.",
+    "Never use placeholder image URLs. Rely exclusively on the provided image list."
+  ]
+}

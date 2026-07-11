@@ -1,0 +1,108 @@
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,900,300,500&f[]=general-sans@600,500,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  background-color: #09090b;
+  color: #fafafa;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: 'Cabinet Grotesk', 'General Sans', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.font-mono-i {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  :root {
+    --background: 240 6% 6%;
+    --foreground: 0 0% 98%;
+    --card: 240 5% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 187 92% 45%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 330 82% 60%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 100% / 0.08;
+    --input: 240 5% 14%;
+    --ring: 187 92% 45%;
+    --chart-1: 187 92% 55%;
+    --chart-2: 330 82% 65%;
+    --chart-3: 43 74% 66%;
+    --chart-4: 143 74% 55%;
+    --chart-5: 260 90% 65%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* Grid backdrop */
+.acos-grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
+}
+
+.acos-aurora {
+  background: radial-gradient(50% 50% at 30% 20%, rgba(6, 182, 212, 0.35) 0%, transparent 70%),
+    radial-gradient(50% 50% at 80% 70%, rgba(236, 72, 153, 0.28) 0%, transparent 70%);
+  filter: blur(80px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0b; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+@keyframes acos-pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.acos-pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.5;
+  animation: acos-pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
