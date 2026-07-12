@@ -28,8 +28,10 @@ Import all content from https://github.com/bankarmanan8-boop/ACOS, build/extend 
 - Configurable per-agent scheduled runs (in-process asyncio poller)
 - Prompt-injection sanitizer, emails log viewer
 
-### Added this session (Jul 11 2026)
-- **Resend live**: real emails now sent (verified via forgot-password flow → `provider=resend, status=sent`)
+### Added this session (Jul 11 2026): real emails now sent (verified via forgot-password flow → `provider=resend, status=sent`)
+- **Demo data seed** — `POST /api/admin/seed-demo` inserts 30 employees + 50 invoices + 80 inventory + 25 leads + 8 contracts marked with `seeded: true`; `POST /api/admin/wipe-demo` removes them cleanly (leaves real data alone). Seed/Wipe buttons on Settings for admins.
+- **CSV export** — `GET /api/export/{collection}` streams CSV for 6 modules. Export button next to Import on every page. Admin + manager only; audited.
+- **Audit log RBAC** — `/api/audit-logs` restricted to admin + manager (was any authenticated user). Audit nav item auto-hidden for employee and auditor via `adminManagerOnly` flag in `gradient-menu.jsx`.
 - **Bootstrap admin**: idempotent `bootstrap_admin()` promotes/creates `bankarmanan8@gmail.com` as admin on every startup and refreshes password to `BOOTSTRAP_ADMIN_PASSWORD`; keeps Google auth working too.
 - **Serverless-safe backend**: scheduler loop is auto-disabled when `VERCEL=1` env var is set (Vercel runtime).
 - **Single-folder Vercel deploy** (free-tier compatible):

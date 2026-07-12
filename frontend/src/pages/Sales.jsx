@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import AddRecordDialog from "@/components/AddRecordDialog";
 import CsvImportButton from "@/components/CsvImportButton";
+import CsvExportButton from "@/components/CsvExportButton";
 import { useAuth } from "@/context/AuthContext";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export default function Sales() {
         {canWrite && (
           <div className="flex gap-2">
             <CsvImportButton collection="leads" onImported={load} label="Import CSV" />
+            <CsvExportButton collection="leads" />
             <AddRecordDialog
               testid="add-lead-btn"
               endpoint="/sales/leads"

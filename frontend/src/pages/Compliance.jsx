@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import FileUploader from "@/components/FileUploader";
 import AddRecordDialog from "@/components/AddRecordDialog";
 import CsvImportButton from "@/components/CsvImportButton";
+import CsvExportButton from "@/components/CsvExportButton";
 import { useAuth } from "@/context/AuthContext";
 import { Paperclip, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ export default function Compliance() {
         {canWrite && (
           <div className="flex gap-2">
             <CsvImportButton collection="contracts" onImported={load} label="Import CSV" />
+            <CsvExportButton collection="contracts" />
             <AddRecordDialog
               testid="add-contract-btn"
               endpoint="/compliance/contracts"

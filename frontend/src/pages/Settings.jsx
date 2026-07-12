@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Play, Pause, ShieldCheck, Mail, Save, KeyRound, Users, Trash2 } from "lucide-react";
+import { Play, Pause, ShieldCheck, Mail, Save, KeyRound, Users, Trash2, Database, Sparkles } from "lucide-react";
 
 const rolePerms = {
   admin: ["Full access", "Configure agent schedules", "Manage users", "Approve all (OTP required)", "View audit + emails log"],
@@ -21,6 +21,8 @@ export default function Settings() {
   const [pwd, setPwd] = useState({ current_password: "", new_password: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [wiping, setWiping] = useState(false);
   const isAdmin = user?.role === "admin";
   const canSeeEmails = user?.role === "admin" || user?.role === "auditor";
   const canSeeTeam = user?.role === "admin" || user?.role === "auditor";
@@ -85,9 +87,65 @@ export default function Settings() {
     } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); }
   };
 
+  const runSeedDemo = async () => {
+    if (!window.confirm("Seed ~193 demo records across HR, Finance, Inventory, Sales & Compliance?")) return;
+    setSeeding(true);
+    try {
+      const { data } = await api.post("/admin/seed-demo");
+      const total = Object.values(data.counts || {}).reduce((a, b) => a + b, 0);
+      toast.success(`Seeded ${total} records`);
+    } catch (e) { toast.error(e?.response?.data?.detail || "Seed failed"); }
+    finally { setSeeding(false); }
+  };
+
+  const runWipeDemo = async () => {
+    if (!window.confirm("Delete ALL seeded demo records? (Your real data stays untouched.)")) return;
+    setWiping(true);
+    try {
+      const { data } = await api.post("/admin/wipe-demo");
+      const total = Object.values(data.counts || {}).reduce((a, b) => a + b, 0);
+      toast.success(`Removed ${total} demo records`);
+    } catch (e) { toast.error(e?.response?.data?.detail || "Wipe failed"); }
+    finally { setWiping(false); }
+  };
+
   return (
     <div data-testid="settings-page">
       <PageHeader eyebrow="Admin" title="Settings" />
+
+      {isAdmin && (
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/10 p-6 mb-6" data-testid="demo-data-card">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="w-4 h-4 text-fuchsia-400" />
+            <h3 className="font-display text-xl font-bold">Demo data</h3>
+          </div>
+          <p className="text-sm text-zinc-400 mb-4">
+            Instantly load ~193 realistic records (30 employees, 50 invoices, 80 inventory items, 25 leads, 8 contracts) so
+            you can watch the agents actually run over data. Wipe removes only <code className="text-fuchsia-300">seeded</code>
+            &nbsp;rows — your real data stays untouched.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={runSeedDemo}
+              disabled={seeding}
+              data-testid="seed-demo-btn"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-black font-bold text-xs uppercase tracking-widest disabled:opacity-50"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {seeding ? "Seeding…" : "Seed demo data"}
+            </button>
+            <button
+              onClick={runWipeDemo}
+              disabled={wiping}
+              data-testid="wipe-demo-btn"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/10 text-xs font-semibold uppercase tracking-widest disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {wiping ? "Wiping…" : "Wipe demo data"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Profile edit + Password change */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

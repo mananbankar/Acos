@@ -25,14 +25,19 @@ const items = [
   { to: "/compliance",  title: "Compliance", icon: ShieldCheck,     from: "#eab308", to2: "#f97316", employeeHidden: true },
   { to: "/analytics",   title: "Analytics",  icon: BarChart3,       from: "#14b8a6", to2: "#06b6d4" },
   { to: "/approvals",   title: "Approvals",  icon: ScrollText,      from: "#fb7185", to2: "#f43f5e", employeeHidden: true },
-  { to: "/audit-logs",  title: "Audit",      icon: History,         from: "#64748b", to2: "#94a3b8" },
+  { to: "/audit-logs",  title: "Audit",      icon: History,         from: "#64748b", to2: "#94a3b8", adminManagerOnly: true },
   { to: "/settings",    title: "Settings",   icon: SlidersHorizontal, from: "#a3a3a3", to2: "#e5e7eb" },
 ];
 
 export default function GradientMenu() {
   const { user } = useAuth();
   const restricted = user?.role === "employee" || user?.role === "pending";
-  const visibleItems = items.filter((it) => !(restricted && it.employeeHidden));
+  const role = user?.role;
+  const visibleItems = items.filter((it) => {
+    if (restricted && it.employeeHidden) return false;
+    if (it.adminManagerOnly && role !== "admin" && role !== "manager") return false;
+    return true;
+  });
   return (
     <ul
       data-testid="gradient-menu"

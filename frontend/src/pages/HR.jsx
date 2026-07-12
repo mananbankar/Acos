@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import AddRecordDialog from "@/components/AddRecordDialog";
 import CsvImportButton from "@/components/CsvImportButton";
+import CsvExportButton from "@/components/CsvExportButton";
 import { useAuth } from "@/context/AuthContext";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,6 +54,7 @@ export default function HR() {
     <div data-testid="hr-page">
       <PageHeader eyebrow="Workforce" title="HR & People">
         {canWrite && <CsvImportButton collection="employees" onImported={loadEmps} label="Import employees CSV" />}
+        {canWrite && <CsvExportButton collection="employees" label="Export employees" />}
       </PageHeader>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-zinc-900/60 p-6">

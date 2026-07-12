@@ -690,6 +690,9 @@ async def list_approvals(user: dict = Depends(current_user)):
 
 @api_router.get("/audit-logs")
 async def list_audit(user: dict = Depends(current_user)):
+    # Only admin + manager can view the system-wide audit log
+    if _role(user) not in {"admin", "manager"}:
+        raise HTTPException(403, "Only admin and manager can view audit logs")
     logs = await db.audit_logs.find({}, {"_id": 0}).sort("timestamp", -1).to_list(200)
     return logs
 
@@ -889,6 +892,147 @@ async def import_csv(collection: str, file: UploadFile = File(...), user: dict =
         await db[collection].insert_many(rows)
         await audit(user["email"], "import", collection, f"Imported {len(rows)} rows via CSV")
     return {"ok": True, "imported": len(rows), "errors": errors[:20]}
+
+
+# --- CSV Export (admin + manager) ---------------------------------------------
+_EXPORT_COLUMNS = {
+    "employees": ["id", "name", "email", "department", "role", "manager", "salary", "status", "attendance", "created_at"],
+    "leaves": ["id", "employee", "type", "start", "end", "days", "status", "created_at"],
+    "invoices": ["id", "number", "vendor", "amount", "due_date", "status", "category", "created_at"],
+    "inventory": ["id", "sku", "name", "category", "stock", "reorder_at", "unit_cost", "supplier", "created_at"],
+    "leads": ["id", "name", "company", "email", "phone", "source", "stage", "value", "owner", "score", "created_at"],
+    "contracts": ["id", "title", "counterparty", "start", "end", "value", "status", "risk", "created_at"],
+}
+
+
+@api_router.get("/export/{collection}")
+async def export_csv(collection: str, user: dict = Depends(current_user)):
+    if collection not in _EXPORT_COLUMNS:
+        raise HTTPException(404, "Unknown collection")
+    if _role(user) not in {"admin", "manager"}:
+        raise HTTPException(403, "Only admin and manager can export data")
+    cols = _EXPORT_COLUMNS[collection]
+    rows = await db[collection].find({"is_deleted": {"$ne": True}}, {"_id": 0}).to_list(10000)
+    buf = _io.StringIO()
+    w = _csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore")
+    w.writeheader()
+    for r in rows:
+        w.writerow({k: r.get(k, "") for k in cols})
+    await audit(user["email"], "export", collection, f"Exported {len(rows)} rows as CSV")
+    from fastapi.responses import Response
+    fname = f"{collection}-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
+# --- Seed demo data (admin only) ----------------------------------------------
+@api_router.post("/admin/seed-demo")
+async def seed_demo(user: dict = Depends(current_user)):
+    if _role(user) != "admin":
+        raise HTTPException(403, "Only admins can seed demo data")
+    import random
+    now = utcnow_iso()
+    # Employees
+    depts = ["Engineering", "Sales", "Finance", "HR", "Operations", "Marketing"]
+    first = ["Sarah", "Raj", "Emma", "Lin", "Marcus", "Priya", "Diego", "Yuki", "Aisha", "Tom",
+             "Fatima", "Noah", "Zara", "Ivan", "Chloe", "Jamal", "Nadia", "Owen", "Mei", "Kofi",
+             "Ana", "Ben", "Cara", "Dan", "Eva", "Finn", "Gia", "Hank", "Iris", "Juno"]
+    last = ["Chen", "Patel", "Watson", "Wu", "Silva", "Kim", "Garcia", "Tanaka", "Khan", "Reed"]
+    employees = []
+    for i in range(30):
+        n = f"{random.choice(first)} {random.choice(last)}"
+        employees.append({
+            "id": new_id(), "name": n, "email": f"{n.lower().replace(' ', '.')}@yourco.com",
+            "department": random.choice(depts), "role": random.choice(["Engineer", "Manager", "Analyst", "Lead", "Specialist"]),
+            "manager": random.choice(first), "salary": random.randint(55, 190) * 1000,
+            "status": random.choices(["active", "on_leave"], weights=[9, 1])[0],
+            "attendance": random.randint(78, 100), "created_at": now,
+            "created_by": user["email"], "is_deleted": False, "seeded": True,
+        })
+    # Invoices
+    vendors = ["AWS", "Google Workspace", "Slack", "Notion", "Figma", "Datadog", "Cloudflare",
+               "Acme Corp", "Office Supplies Inc", "Legal LLP", "Stripe", "Shopify"]
+    invoices = []
+    for i in range(50):
+        v = random.choice(vendors)
+        invoices.append({
+            "id": new_id(), "number": f"INV-{2000 + i}", "vendor": v,
+            "amount": round(random.uniform(120, 12500), 2),
+            "due_date": f"2026-{random.randint(1,3):02d}-{random.randint(1,28):02d}",
+            "status": random.choices(["pending", "paid", "overdue"], weights=[5, 4, 1])[0],
+            "category": random.choice(["cloud", "saas", "legal", "office", "marketing"]),
+            "created_at": now, "created_by": user["email"], "is_deleted": False, "seeded": True,
+        })
+    # Inventory
+    items = ["Widget", "Cable", "Connector", "Battery", "Sensor", "Housing", "Bracket", "Fastener"]
+    cats = ["Hardware", "Electronics", "Packaging", "Consumables"]
+    inventory = []
+    for i in range(80):
+        stock = random.randint(0, 200)
+        reorder = random.randint(15, 40)
+        inventory.append({
+            "id": new_id(), "sku": f"SKU-{1000 + i}", "name": f"{random.choice(items)} {chr(65 + i % 26)}",
+            "category": random.choice(cats),
+            "stock": stock, "reorder_at": reorder,
+            "unit_cost": round(random.uniform(0.5, 85), 2),
+            "supplier": random.choice(["Acme", "GlobalParts", "Nova Supplies", "PartnerCo"]),
+            "created_at": now, "created_by": user["email"], "is_deleted": False, "seeded": True,
+        })
+    # Leads
+    companies = ["Acme Corp", "Globex", "Initech", "Umbrella", "Wayne Ent", "Stark Ind", "Cyberdyne", "Wonka",
+                 "Hooli", "Pied Piper", "Massive Dynamic", "Sirius"]
+    stages = ["new", "qualified", "proposal", "negotiation", "won", "lost"]
+    leads = []
+    for i in range(25):
+        n = f"{random.choice(first)} {random.choice(last)}"
+        leads.append({
+            "id": new_id(), "name": n, "company": random.choice(companies),
+            "email": f"{n.lower().replace(' ', '.')}@{random.choice(companies).lower().replace(' ', '')}.com",
+            "phone": f"+1-555-{random.randint(100,999)}-{random.randint(1000,9999)}",
+            "source": random.choice(["website", "referral", "cold_call", "linkedin", "event"]),
+            "stage": random.choice(stages),
+            "value": random.randint(2, 250) * 1000,
+            "owner": random.choice(first),
+            "score": random.randint(20, 100),
+            "created_at": now, "created_by": user["email"], "is_deleted": False, "seeded": True,
+        })
+    # Contracts
+    contracts = []
+    for i in range(8):
+        contracts.append({
+            "id": new_id(), "title": f"MSA {random.choice(companies)}",
+            "counterparty": random.choice(companies),
+            "start": f"2025-{random.randint(1,12):02d}-{random.randint(1,28):02d}",
+            "end": f"2026-{random.randint(3,12):02d}-{random.randint(1,28):02d}",
+            "value": random.randint(15, 500) * 1000,
+            "status": random.choice(["active", "expiring", "review"]),
+            "risk": random.choice(["low", "medium", "high"]),
+            "created_at": now, "created_by": user["email"], "is_deleted": False, "seeded": True,
+        })
+
+    counts = {}
+    for name, docs in [("employees", employees), ("invoices", invoices),
+                      ("inventory", inventory), ("leads", leads), ("contracts", contracts)]:
+        if docs:
+            await db[name].insert_many(docs)
+        counts[name] = len(docs)
+    await audit(user["email"], "seed_demo", "system", f"Seeded demo data: {counts}")
+    return {"ok": True, "counts": counts}
+
+
+@api_router.post("/admin/wipe-demo")
+async def wipe_demo(user: dict = Depends(current_user)):
+    if _role(user) != "admin":
+        raise HTTPException(403, "Only admins can wipe demo data")
+    counts = {}
+    for name in ["employees", "invoices", "inventory", "leads", "contracts"]:
+        res = await db[name].delete_many({"seeded": True})
+        counts[name] = res.deleted_count
+    await audit(user["email"], "wipe_demo", "system", f"Wiped demo data: {counts}")
+    return {"ok": True, "counts": counts}
 
 
 # --- Original CRUD write endpoints ---
