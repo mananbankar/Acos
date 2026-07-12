@@ -1,5 +1,5 @@
 {
-  "buildCommand": "yarn install && CI=false yarn build",
+  "buildCommand": "yarn install && DISABLE_ESLINT_PLUGIN=true CI=false NODE_OPTIONS=--max-old-space-size=4096 yarn build",
   "outputDirectory": "build",
   "framework": "create-react-app",
   "rewrites": [
